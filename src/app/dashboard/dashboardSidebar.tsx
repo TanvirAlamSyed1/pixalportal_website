@@ -32,13 +32,14 @@ export default function Sidebar() {
                 <Link href="/dashboard/create" className="hover:bg-gray-700 px-4 py-2 rounded">Create Event</Link>
                 <Link href="/dashboard/manage" className="hover:bg-gray-700 px-4 py-2 rounded">Manage Events</Link>
                 <Link href="/dashboard/previous" className="hover:bg-gray-700 px-4 py-2 rounded">Previous Events</Link>
+                <Link href="/dashboard/settings" className="hover:bg-gray-700 px-4 py-2 rounded">Settings</Link>
               </nav>
             </>
           )}
         </div>
-
         {/* Logout button at the bottom */}
         {isOpen && (
+          
           <button
             onClick={handleLogout}
             className="mt-auto bg-red-600 hover:bg-red-700 w-full py-2 rounded text-white"
