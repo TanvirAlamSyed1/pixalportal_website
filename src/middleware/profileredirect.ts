@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SupabaseClient, User } from '@supabase/supabase-js';
 
-const publicRoutes = ['/login', '/signup', '/auth/callback'];
+const publicRoutes = ['/login', '/login/signup', '/auth/callback'];
 
 export async function profileRedirect(
   req: NextRequest,
@@ -10,7 +10,7 @@ export async function profileRedirect(
 ) {
   const path = req.nextUrl.pathname;
 
-  if (!user && !publicRoutes.includes(path) && path !== '/completeform') {
+  if (!user && !publicRoutes.includes(path) && path !== '/login/completeform') {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
@@ -29,15 +29,15 @@ export async function profileRedirect(
     console.log('🧪 nameMissing =', nameMissing);
 
     if (publicRoutes.includes(path)) {
-      if (nameMissing) return NextResponse.redirect(new URL('/completeform', req.url));
+      if (nameMissing) return NextResponse.redirect(new URL('/login/completeform', req.url));
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
-    if (nameMissing && path !== '/completeform') {
-      return NextResponse.redirect(new URL('/completeform', req.url));
+    if (nameMissing && path !== '/login/completeform') {
+      return NextResponse.redirect(new URL('/login/completeform', req.url));
     }
 
-    if (!nameMissing && (path === '/completeform' || path === '/')) {
+    if (!nameMissing && (path === '/login/completeform' || path === '/')) {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
   }

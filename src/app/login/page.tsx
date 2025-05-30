@@ -62,7 +62,7 @@ export default function LoginPage() {
             Login
           </button>
           <Link
-            href="/signup"
+            href="/login/signup"
             className="block text-center mt-4 text-blue-600 hover:underline"
           >
             Create Account
