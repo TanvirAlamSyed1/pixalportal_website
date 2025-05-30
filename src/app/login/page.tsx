@@ -1,41 +1,57 @@
-// src/app/login/page.tsx
+'use client';
 
-'use client';  // 👈 This must be the very first line
-
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    setErrorMessage('');
 
-    // Set cookie to simulate login
-    document.cookie = "loggedIn=true; path=/";
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    router.push('/dashboard');
+    if (error) {
+      setErrorMessage(error.message);
+    } else {
+      window.location.href = '/';
+    }
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm bg-white p-6 rounded shadow-md">
-        <h1 className="text-2xl font-bold mb-4">Login</h1>
+        <h1 className="text-2xl font-bold text-black mb-4">Login</h1>
         <form onSubmit={handleLogin}>
+          {errorMessage && <p className="text-red-500 mb-2">{errorMessage}</p>}
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium text-black mb-1">Email</label>
             <input
               type="email"
-              className="w-full border border-gray-300 p-2 rounded"
+              className="w-full border border-gray-300 p-2 rounded text-black"
               placeholder="you@example.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label className="block text-sm font-medium mb-1 text-black">Password</label>
             <input
               type="password"
-              className="w-full border border-gray-300 p-2 rounded"
+              className="w-full border border-gray-300 p-2 rounded text-black"
               placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
               required
             />
           </div>
@@ -45,6 +61,12 @@ export default function LoginPage() {
           >
             Login
           </button>
+          <Link
+            href="/signup"
+            className="block text-center mt-4 text-blue-600 hover:underline"
+          >
+            Create Account
+          </Link>
         </form>
       </div>
     </main>

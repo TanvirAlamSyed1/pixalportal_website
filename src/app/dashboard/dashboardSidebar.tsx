@@ -2,42 +2,100 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-export default function Sidebar() {
-  const [isOpen, setIsOpen] = useState(false);
+export default function Sidebar({
+  isOpen,
+  setIsOpen,
+}: {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}) 
+{
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile dropdown
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+
+
+  const handleLogout = async () => {
+    const supabase = createClientComponentClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
 
   return (
-    <div className="relative min-h-screen flex bg-gray-100 text-gray-900">
-      {/* Sidebar */}
-      <aside className={`fixed top-0 left-0 h-full bg-gray-900 text-white shadow-lg z-30 transition-all duration-300 ${isOpen ? 'w-64' : 'w-0 overflow-hidden'}`}>
-        <div className="pt-20 px-6 space-y-4"> {/* Add top padding to avoid toggle overlap */}
-          <h2 className="text-2xl font-bold">Menu</h2>
-          <nav className="flex flex-col space-y-2">
-            <Link href="/admin" className="hover:bg-gray-700 px-4 py-2 rounded">Home</Link>
-            <Link href="/admin/create" className="hover:bg-gray-700 px-4 py-2 rounded">Create Event</Link>
-            <Link href="/admin/manage" className="hover:bg-gray-700 px-4 py-2 rounded">Manage Events</Link>
-            <Link href="/admin/previous" className="hover:bg-gray-700 px-4 py-2 rounded">Previous Events</Link>
+    <>
+      {/* 🔹 MOBILE TOPBAR */}
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-gray-900 text-white p-4 flex justify-between items-center z-50">
+        <h2 className="text-lg font-bold">Menu</h2>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded"
+        >
+          {mobileMenuOpen ? '✕' : '☰'}
+        </button>
+      </div>
+
+      {/* 🔹 MOBILE DROPDOWN MENU */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed top-14 left-0 right-0 bg-gray-900 text-white z-40 shadow-lg">
+          <nav className="flex flex-col px-4 py-4 space-y-2">
+            <Link href="/dashboard" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+            <Link href="/dashboard/create" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Create Event</Link>
+            <Link href="/dashboard/manage" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Manage Events</Link>
+            <Link href="/dashboard/previous" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Previous Events</Link>
+            <Link href="/dashboard/settings" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Settings</Link>
+            <button
+              onClick={() => {
+                handleLogout();
+                setMobileMenuOpen(false);
+              }}
+              className="bg-red-600 hover:bg-red-700 w-full py-2 rounded text-white"
+            >
+              Logout
+            </button>
           </nav>
         </div>
-      </aside>
+      )}
 
-      {/* Toggle Button (always fixed in top-left) */}
-      <button
-        className="fixed top-4 left-4 z-50 bg-blue-600 text-white p-2 rounded-md shadow"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-          </svg>
-        )}
-      </button>
-      <main className={`flex-1 transition-all duration-300 p-10 ${isOpen ? 'ml-64' : 'ml-0'}`}>
-      </main>
-    </div>
+      {/* 🔹 DESKTOP SIDEBAR */}
+      <aside className={`hidden md:flex fixed top-0 left-0 h-full bg-gray-900 text-white z-30 shadow-md transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'}`}>
+        <div className="flex flex-col justify-between h-full pt-6 px-4 pb-6">
+          <div>
+            <button
+              className="mb-6 bg-blue-600 hover:bg-blue-700 p-2 rounded text-white"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? '✕' : '☰'}
+            </button>
+
+            {isOpen && (
+              <>
+                <h2 className="text-xl font-bold mb-4">Menu</h2>
+                <nav className="flex flex-col space-y-2">
+                  <Link href="/dashboard" className="hover:bg-gray-700 px-4 py-2 rounded">Home</Link>
+                  <Link href="/dashboard/create" className="hover:bg-gray-700 px-4 py-2 rounded">Create Event</Link>
+                  <Link href="/dashboard/manage" className="hover:bg-gray-700 px-4 py-2 rounded">Manage Events</Link>
+                  <Link href="/dashboard/previous" className="hover:bg-gray-700 px-4 py-2 rounded">Previous Events</Link>
+                  <Link href="/dashboard/settings" className="hover:bg-gray-700 px-4 py-2 rounded">Settings</Link>
+                </nav>
+              </>
+            )}
+          </div>
+
+          {isOpen && (
+            <button
+              onClick={handleLogout}
+              className="mt-auto bg-red-600 hover:bg-red-700 w-full py-2 rounded text-white"
+            >
+              Logout
+            </button>
+          )}
+        </div>
+      </aside>
+    </>
   );
 }

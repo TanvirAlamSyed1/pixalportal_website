@@ -1,8 +1,8 @@
 // app/layout.tsx
 import './globals.css';
 export const metadata = {
-  title: 'My App',
-  description: 'Login Page Example',
+  title: 'Pixal Portal',
+  description: 'Login Page',
 };
 
 export default function RootLayout({
