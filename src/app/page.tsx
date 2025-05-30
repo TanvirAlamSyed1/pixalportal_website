@@ -1,14 +1,8 @@
 // src/app/page.tsx
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-
-export default async function HomePage() {
-  const cookieStore = cookies();
-  const isLoggedIn = (await cookieStore).get('loggedIn')?.value === 'true';
-
-  if (!isLoggedIn) {
-    redirect('/login');
-  }
-  redirect('/dashboard'); // or '/admin/dashboard' if preferred
+export default function HomePage() {
+  return (
+    <main className="flex justify-center items-center min-h-screen">
+      <h1 className="text-xl text-gray-700">Redirecting...</h1>
+    </main>
+  );
 }
-

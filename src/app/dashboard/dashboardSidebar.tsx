@@ -17,7 +17,7 @@ export default function Sidebar({
 
   const handleLogout = () => {
     document.cookie = 'loggedIn=; Max-Age=0; path=/';
-    router.push('/login');
+    window.location.href ='/login';
   };
 
   return (
