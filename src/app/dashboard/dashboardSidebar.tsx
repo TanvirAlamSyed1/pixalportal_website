@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function Sidebar({
   isOpen,
@@ -14,11 +16,15 @@ export default function Sidebar({
 {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile dropdown
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
-  const handleLogout = () => {
-    document.cookie = 'loggedIn=; Max-Age=0; path=/';
-    window.location.href ='/login';
+
+  const handleLogout = async () => {
+    const supabase = createClientComponentClient();
+    await supabase.auth.signOut();
+    router.push('/login');
   };
+
 
   return (
     <>
