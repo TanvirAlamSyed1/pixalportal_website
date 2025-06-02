@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import dayjs from 'dayjs';
+import Link from 'next/link';
 
 interface Event {
   EventID: string;
@@ -11,12 +12,11 @@ interface Event {
   EndDate: string;
 }
 
-const EventCard = ({ title }: { title: string }) => (
-  <div className="bg-gray-800 text-white p-4 rounded-lg w-40 h-40 flex items-center justify-center shadow hover:shadow-lg">
+const EventCard = ({ title, href }: { title: string; href: string }) => (
+  <Link href={href} className="bg-gray-800 text-white p-4 rounded-lg w-40 h-40 flex items-center justify-center shadow hover:shadow-lg">
     <span className="text-center">{title}</span>
-  </div>
+  </Link>
 );
-
 export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,25 +86,14 @@ export default function DashboardPage() {
           <p>Loading events...</p>
         ) : (
           <>
-            {/* 🔍 Debug: All Events */}
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">All Events (debug)</h2>
-              <div className="flex gap-4 flex-wrap">
-                {events.length > 0 ? (
-                  events.map(e => <EventCard key={e.EventID} title={e.Name} />)
-                ) : (
-                  <p>No events found</p>
-                )}
-              </div>
-            </section>
-
             {/* Current Events */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold mb-4">Current Events</h2>
               <div className="flex gap-4 flex-wrap">
                 {currentEvents.length > 0 ? (
-                  currentEvents.map(e => <EventCard key={e.EventID} title={e.Name} />)
-                ) : (
+                  events.map(e => (
+                    <EventCard key={e.EventID} title={e.Name} href={`/dashboard/view/${e.EventID}`} />
+                  ))) : (
                   <p>No current events</p>
                 )}
               </div>
@@ -115,8 +104,9 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-bold mb-4">Upcoming Events</h2>
               <div className="flex gap-4 flex-wrap">
                 {upcomingEvents.length > 0 ? (
-                  upcomingEvents.map(e => <EventCard key={e.EventID} title={e.Name} />)
-                ) : (
+                  events.map(e => (
+                    <EventCard key={e.EventID} title={e.Name} href={`/dashboard/view/${e.EventID}`} />
+                  ))) : (
                   <p>No upcoming events</p>
                 )}
               </div>
@@ -126,9 +116,9 @@ export default function DashboardPage() {
             <section>
               <h2 className="text-2xl font-bold mb-4">Previous Events</h2>
               <div className="flex gap-4 flex-wrap">
-                {previousEvents.length > 0 ? (
-                  previousEvents.map(e => <EventCard key={e.EventID} title={e.Name} />)
-                ) : (
+                {previousEvents.length > 0 ? ( events.map(e => (
+                    <EventCard key={e.EventID} title={e.Name} href={`/dashboard/view/${e.EventID}`} />
+                  ))) : (
                   <p>No previous events</p>
                 )}
               </div>
