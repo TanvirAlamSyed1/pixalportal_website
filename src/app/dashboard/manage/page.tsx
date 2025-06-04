@@ -25,6 +25,23 @@ export default function ManagePage() {
     fetchEvents();
   }, []);
 
+  const handleDelete = async (eventId: string) => {
+    const confirm = window.confirm("Are you sure you want to delete this event?");
+    if (!confirm) return;
+
+    const { error } = await supabase
+      .from('Event')
+      .delete()
+      .eq('EventID', eventId);
+
+    if (error) {
+      alert("Failed to delete event: " + error.message);
+    } else {
+      // Remove event from UI
+      setEvents(prev => prev.filter(e => e.EventID !== eventId));
+    }
+  };
+
   return (
     <main className="p-6">
       <h1 className="text-2xl font-bold mb-4">Your Events</h1>
@@ -37,12 +54,20 @@ export default function ManagePage() {
           {events.map(event => (
             <li key={event.EventID} className="p-4 border rounded">
               <h2 className="text-lg font-semibold">{event.Name}</h2>
-              <Link
-                href={`/dashboard/manage/${event.EventID}/edit`}
-                className="text-blue-600 underline"
-              >
-                Manage Events
-              </Link>
+              <div className="flex items-center gap-4 mt-2">
+                <Link
+                  href={`/dashboard/manage/${event.EventID}/edit`}
+                  className="text-blue-600 underline"
+                >
+                  Manage Event
+                </Link>
+                <button
+                  onClick={() => handleDelete(event.EventID)}
+                  className="text-red-600 hover:underline"
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>

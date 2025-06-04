@@ -63,7 +63,7 @@ export default function DashboardPage() {
   const now = dayjs();
 
   const currentEvents = events.filter(e =>
-    dayjs(e.StartDate).isBefore(now) && dayjs(e.EndDate).isAfter(now)
+    dayjs(e.StartDate).isSame(now) && dayjs(e.EndDate).isAfter(now)
   );
   console.log("📅 Current events:", currentEvents);
   const upcomingEvents = events.filter(e =>
@@ -91,7 +91,7 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-bold mb-4">Current Events</h2>
               <div className="flex gap-4 flex-wrap">
                 {currentEvents.length > 0 ? (
-                  events.map(e => (
+                  currentEvents.map(e => (
                     <EventCard key={e.EventID} title={e.Name} href={`/dashboard/view/${e.EventID}`} />
                   ))) : (
                   <p>No current events</p>
@@ -104,19 +104,18 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-bold mb-4">Upcoming Events</h2>
               <div className="flex gap-4 flex-wrap">
                 {upcomingEvents.length > 0 ? (
-                  events.map(e => (
+                  upcomingEvents.map(e => (
                     <EventCard key={e.EventID} title={e.Name} href={`/dashboard/view/${e.EventID}`} />
                   ))) : (
                   <p>No upcoming events</p>
                 )}
               </div>
             </section>
-
             {/* Previous Events */}
             <section>
               <h2 className="text-2xl font-bold mb-4">Previous Events</h2>
               <div className="flex gap-4 flex-wrap">
-                {previousEvents.length > 0 ? ( events.map(e => (
+                {previousEvents.length > 0 ? ( previousEvents.map(e => (
                     <EventCard key={e.EventID} title={e.Name} href={`/dashboard/view/${e.EventID}`} />
                   ))) : (
                   <p>No previous events</p>
