@@ -1,29 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useEvents } from '@/context/EventsContext';
 import { supabase } from '@/lib/supabaseClient';
 
 export default function ManagePage() {
-  const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('Event')
-        .select('EventID, Name')
-        .eq('CreatedByUserID', user.id);
-
-      if (!error) setEvents(data ?? []);
-      setLoading(false);
-    };
-
-    fetchEvents();
-  }, []);
+  const { events, loading, refetch } = useEvents(); // ✅ use shared context
 
   const handleDelete = async (eventId: string) => {
     const confirm = window.confirm("Are you sure you want to delete this event?");
@@ -37,8 +19,8 @@ export default function ManagePage() {
     if (error) {
       alert("Failed to delete event: " + error.message);
     } else {
-      // Remove event from UI
-      setEvents(prev => prev.filter(e => e.EventID !== eventId));
+      // ✅ Re-fetch from context after deletion
+      refetch();
     }
   };
 
