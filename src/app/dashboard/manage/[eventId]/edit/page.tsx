@@ -56,6 +56,24 @@ export default function EditEventPage() {
     router.push('/dashboard/manage');
   };
 
+  const handleDeleteLocation = async (locationId: string) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this location?");
+  if (!confirmDelete) return;
+
+  const { error } = await supabase
+    .from('EventLocation')
+    .delete()
+    .eq('EventLocID', locationId);
+
+  if (error) {
+    alert("Failed to delete location: " + error.message);
+  } else {
+    // Remove deleted location from local state
+    setLocations(prev => prev.filter(loc => loc.EventLocID !== locationId));
+  }
+};
+
+
   return (
     <main className="p-6 space-y-10">
       <section>
@@ -78,21 +96,36 @@ export default function EditEventPage() {
         ) : (
           <ul className="space-y-2">
             {locations.map((loc) => (
-              <li key={loc.EventLocID} className="border p-3 rounded flex justify-between items-center">
-                <div>
-                  <h3 className="font-medium">{loc.Name}</h3>
+              <li key={loc.EventLocID} className="border p-4 rounded shadow-sm bg-white">
+                <div className="mb-2">
+                  <h3 className="text-lg font-semibold">{loc.Name}</h3>
                   <p className="text-sm text-gray-600">{loc.Description}</p>
                 </div>
-                <Link
-                  href={`/dashboard/manage/locations/${loc.EventLocID}/edit`}
-                  className="text-blue-600 hover:underline"
-                >
-                  Edit
-                </Link>
+                <div className="flex gap-3 mt-4">
+                  <Link
+                    href={`/dashboard/manage/locations/${loc.EventLocID}/edit`}
+                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => handleDeleteLocation(loc.EventLocID)}
+                    className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
         )}
+        <Link
+          href={`/dashboard/manage/locations/create?eventId=${eventId}`}
+          className="inline-block mt-4 text-sm bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >
+          Add Location
+        </Link>
+
       </section>
     </main>
   );

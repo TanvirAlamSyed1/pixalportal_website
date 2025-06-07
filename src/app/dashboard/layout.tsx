@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Sidebar from './dashboardSidebar';
+import Sidebar from './components/dashboardSidebar';
 import { EventsProvider } from '@/context/EventsContext';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

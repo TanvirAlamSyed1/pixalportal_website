@@ -3,10 +3,15 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 
 export default function ViewEventPage() {
   const { eventId } = useParams() as { eventId: string };
   const [event, setEvent] = useState<any>(null);
+  const router = useRouter();
+  const handleLogout = async () => {
+    router.push('/dashboard')
+  }
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -41,6 +46,12 @@ export default function ViewEventPage() {
             </a>
           </div>
         )}
+        <button
+              onClick={handleLogout}
+              className="mt-auto bg-red-600 hover:bg-red-700 w-2xs py-2 rounded text-white"
+            >
+              Back
+            </button>
       </div>
     </main>
   );
