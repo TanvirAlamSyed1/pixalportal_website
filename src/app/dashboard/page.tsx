@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { useEvents, Event as EventType } from '@/context/EventsContext';
 
+type EventWithHref = EventType & { customHref?: string };
 
 const EventCard = ({
   title,
@@ -30,7 +32,7 @@ const EventSection = ({
   sort = false,
 }: {
   title: string;
-  events: EventType[];
+  events: EventWithHref[];
   showCountdown?: boolean;
   sort?: boolean;
 }) => {
@@ -52,11 +54,13 @@ const EventSection = ({
               ? `${dayjs(e.StartDate).diff(now, 'day')} day${dayjs(e.StartDate).diff(now, 'day') !== 1 ? 's' : ''} to go`
               : undefined;
 
+            const link = e.customHref || `/dashboard/view/${e.EventID}`;
+
             return (
               <EventCard
                 key={e.EventID}
                 title={e.Name}
-                href={`/dashboard/view/${e.EventID}`}
+                href={link}
                 countdown={countdown}
               />
             );
@@ -73,11 +77,31 @@ export default function DashboardPage() {
   const { events, loading } = useEvents();
   const now = dayjs();
 
-  const currentEvents = events.filter(
-    e => dayjs(e.StartDate).isSame(now, 'day') && dayjs(e.EndDate).isAfter(now)
+  const currentEvents: EventWithHref[] = events
+    .filter(e =>
+      dayjs(e.StartDate).isSame(now, 'day') &&
+      (dayjs(e.EndDate).isSame(now, 'day') || dayjs(e.EndDate).isAfter(now, 'day'))
+    )
+    .map(e => ({
+      ...e,
+      customHref: `/dashboard/current/${e.EventID}`, // 👈 QR Code view route
+    }));
+
+  const upcomingEvents = events.filter(
+    e => dayjs(e.StartDate).isAfter(now, 'day')
   );
-  const upcomingEvents = events.filter(e => dayjs(e.StartDate).isAfter(now));
-  const previousEvents = events.filter(e => dayjs(e.EndDate).isBefore(now));
+
+  const previousEvents = events.filter(
+    e => dayjs(e.EndDate).isBefore(now, 'day')
+  );
+
+  // ✅ Automatically create S3 folders
+  useEffect(() => {
+    fetch('/api/create-event-folders')
+      .then(res => res.json())
+      .then(data => console.log('📁 S3 Folder API Response:', data))
+      .catch(err => console.error('❌ S3 Folder API Error:', err));
+  }, []);
 
   return (
     <div className="flex h-screen text-black">
