@@ -6,9 +6,11 @@ import { createEventSchema , CreateEventFormValues } from './formSchema';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { useEvents } from '@/context/EventsContext';
 
 export default function CreateEventPage() {
   const router = useRouter();
+  const { refetch } = useEvents(); // 👈 use the refetch method
   const { register, control, handleSubmit, formState: { errors } } = useForm<CreateEventFormValues>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
@@ -77,7 +79,8 @@ export default function CreateEventPage() {
     }
 
     setSubmitting(false);
-    router.push('/dashboard');
+    await refetch(); // ✅ Refresh the events context manually
+    router.replace('/dashboard'); // ✅ Navigate to dashboard
   };
 
   return (
