@@ -91,9 +91,14 @@ export default function DashboardPage() {
     e => dayjs(e.StartDate).isAfter(now, 'day')
   );
 
-  const previousEvents = events.filter(
-    e => dayjs(e.EndDate).isBefore(now, 'day')
-  );
+  const previousEvents = events
+    .filter(
+      e => dayjs(e.EndDate).isBefore(now, 'day')
+    ) 
+    .map(e => ({
+      ...e,
+      customHref: `/dashboard/previous/${e.EventID}`, // 👈 QR Code view route
+    }));
 
   // ✅ Automatically create S3 folders
   useEffect(() => {
