@@ -36,7 +36,7 @@ export default function PreviousEventsPage() {
             <EventCard
               key={event.EventID}
               title={event.Name}
-              href={`/dashboard/view/${event.EventID}`}
+              href={`/dashboard/previous/${event.EventID}`}
             />
           ))}
         </div>
