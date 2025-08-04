@@ -44,6 +44,7 @@ export default function Sidebar({
           <nav className="flex flex-col px-4 py-4 space-y-2">
             <Link href="/dashboard" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Home</Link>
             <Link href="/dashboard/create" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Create Event</Link>
+            <Link href="/dashboard/current" className="hover:bg-gray-700 px-4 py-2 rounded"onClick={() => setMobileMenuOpen(false)}>Current Event</Link>
             <Link href="/dashboard/manage" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Manage Events</Link>
             <Link href="/dashboard/previous" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Previous Events</Link>
             <Link href="/dashboard/settings" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Settings</Link>
@@ -77,6 +78,7 @@ export default function Sidebar({
                 <nav className="flex flex-col space-y-2">
                   <Link href="/dashboard" className="hover:bg-gray-700 px-4 py-2 rounded">Home</Link>
                   <Link href="/dashboard/create" className="hover:bg-gray-700 px-4 py-2 rounded">Create Event</Link>
+                  <Link href="/dashboard/current" className="hover:bg-gray-700 px-4 py-2 rounded">Current Events</Link>
                   <Link href="/dashboard/manage" className="hover:bg-gray-700 px-4 py-2 rounded">Manage Events</Link>
                   <Link href="/dashboard/previous" className="hover:bg-gray-700 px-4 py-2 rounded">Previous Events</Link>
                   <Link href="/dashboard/settings" className="hover:bg-gray-700 px-4 py-2 rounded">Settings</Link>
