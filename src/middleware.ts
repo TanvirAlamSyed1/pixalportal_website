@@ -1,3 +1,4 @@
+// src/middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 const publicRoutes = ['/login', '/login/signup', '/auth/callback'];
@@ -6,7 +7,7 @@ const profileIncompleteRoute = '/login/completeform';
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  // Read token from cookie (no async)
+  // Only read cookies — this is synchronous
   const token = req.cookies.get('sb-access-token')?.value;
 
   const isPublic = publicRoutes.includes(path);
