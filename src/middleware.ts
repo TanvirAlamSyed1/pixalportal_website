@@ -1,43 +1,25 @@
-// middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { authMiddleware } from './middleware/auth';
 
 const publicRoutes = ['/login', '/login/signup', '/auth/callback'];
 const profileIncompleteRoute = '/login/completeform';
 const dashboardRoute = '/dashboard';
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
-
-  const { user, supabase } = await authMiddleware(req, res);
-
   const isPublic = publicRoutes.includes(path);
   const isProfilePage = path === profileIncompleteRoute;
 
-  if (!user && !isPublic && !isProfilePage) {
+  // Example: get a cookie that contains a session token
+  const token = req.cookies.get('sb-access-token')?.value;
+
+  if (!token && !isPublic && !isProfilePage) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  if (user) {
-    const { data: profile } = await supabase
-      .from('User')
-      .select('First_Name')
-      .eq('User_ID', user.id)
-      .maybeSingle();
-
-    const nameMissing = !profile || !profile.First_Name?.trim?.();
-
-    if (nameMissing && !isProfilePage) {
-      return NextResponse.redirect(new URL(profileIncompleteRoute, req.url));
-    }
-
-    if (!nameMissing && (path === '/login' || path === '/login/signup' || path === profileIncompleteRoute)) {
-      return NextResponse.redirect(new URL(dashboardRoute, req.url));
-    }
-  }
-
-  return res;
+  // You can't verify user profile in middleware anymore.
+  // Do that in an API route or client-side fetch.
+  
+  return NextResponse.next();
 }
 
 export const config = {
