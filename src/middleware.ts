@@ -7,13 +7,12 @@ const PROFILE_FORM_ROUTE = '/login/completeform';
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  // Safe cookie check — no Supabase
+  // ✅ Edge-safe cookie read
   const token = req.cookies.get('sb-access-token')?.value;
 
   const isPublic = PUBLIC_ROUTES.includes(path);
   const isProfileForm = path === PROFILE_FORM_ROUTE;
 
-  // Block unauthenticated users from protected pages
   if (!token && !isPublic && !isProfileForm) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
@@ -21,6 +20,7 @@ export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
+// ✅ Match everything except static files
 export const config = {
   matcher: ['/((?!_next|.*\\..*|favicon.ico).*)'],
 };
