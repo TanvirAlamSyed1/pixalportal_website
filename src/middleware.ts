@@ -1,27 +1,48 @@
-// src/middleware.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 
-const PUBLIC_ROUTES = ['/login', '/login/signup', '/auth/callback'];
+const PUBLIC_ROUTES = ['/login', '/signup', '/auth/callback'];
 const PROFILE_FORM_ROUTE = '/login/completeform';
 
-export function middleware(req: NextRequest) {
-  const path = req.nextUrl.pathname;
+export async function middleware(req: NextRequest) {
+  // Create response object
+  const res = NextResponse.next();
+  
+  // Create Supabase client
+  const supabase = createMiddlewareClient({ req, res });
 
-  // ✅ Edge-safe cookie read
-  const token = req.cookies.get('sb-access-token')?.value;
+  try {
+    // Check auth state
+    const { data: { user } } = await supabase.auth.getUser();
+    const pathname = req.nextUrl.pathname;
 
-  const isPublic = PUBLIC_ROUTES.includes(path);
-  const isProfileForm = path === PROFILE_FORM_ROUTE;
+    // Handle public routes
+    if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
+      return res;
+    }
 
-  if (!token && !isPublic && !isProfileForm) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    // Handle profile form route
+    if (pathname === PROFILE_FORM_ROUTE) {
+      if (!user) {
+        return NextResponse.redirect(new URL('/login', req.url));
+      }
+      return res;
+    }
+
+    // Protect all other routes
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', req.url));
+    }
+
+    return res;
+  } catch (error) {
+    console.error('Middleware error:', error);
+    return NextResponse.redirect(new URL('/error', req.url));
   }
-
-  return NextResponse.next();
 }
 
-// ✅ Match everything except static files
 export const config = {
-  matcher: ['/((?!_next|.*\\..*|favicon.ico).*)'],
-  runtime: 'edge', // Add this line
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api|.*\\.).*)'],
+  runtime: 'edge',
 };
