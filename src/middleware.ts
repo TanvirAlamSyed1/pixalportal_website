@@ -23,4 +23,5 @@ export function middleware(req: NextRequest) {
 // ✅ Match everything except static files
 export const config = {
   matcher: ['/((?!_next|.*\\..*|favicon.ico).*)'],
+  runtime: 'edge', // Add this line
 };
