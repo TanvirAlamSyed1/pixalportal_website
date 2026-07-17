@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
 import dayjs from 'dayjs';
 import Link from 'next/link';
-import { useEvents, Event as EventType } from '@/context/EventsContext';
+import { useEvents } from '@/context/EventsContext';
+import { Event as EventType } from '@/types/events';
 
 type EventWithHref = EventType & { customHref?: string };
 
@@ -99,14 +99,6 @@ export default function DashboardPage() {
       ...e,
       customHref: `/dashboard/previous/${e.EventID}`, // 👈 QR Code view route
     }));
-
-  // ✅ Automatically create S3 folders
-  useEffect(() => {
-    fetch('/api/create-event-folders')
-      .then(res => res.json())
-      .then(data => console.log('📁 S3 Folder API Response:', data))
-      .catch(err => console.error('❌ S3 Folder API Error:', err));
-  }, []);
 
   return (
     <div className="flex h-screen text-black">

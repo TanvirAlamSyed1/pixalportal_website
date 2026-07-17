@@ -1,19 +1,13 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
-export const createEventSchema = z.object({
-  name: z.string().min(1, 'Event name is required'),
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().min(1, 'End date is required'),
-  address: z.string().min(1, 'Address is required'),
-  postcode: z.string().min(1, 'Postcode is required'),
-  mapURL: z.string().optional(),
+export const eventFormSchema = z.object({
+  name: z.string().min(2, { message: 'Event name must be at least 2 characters.' }),
+  startDate: z.string().min(1, { message: 'Start date is required.' }),
+  endDate: z.string().min(1, { message: 'End date is required.' }),
+  address: z.string().optional(),
+  postcode: z.string().optional(),
+  mapUrl: z.string().url({ message: 'Must be a valid URL.' }).optional().or(z.literal('')),
   description: z.string().optional(),
-  locations: z.array(
-    z.object({
-      name: z.string().min(1, 'Location name is required'),
-      description: z.string().optional(),
-    })
-  )
 });
 
-export type CreateEventFormValues = z.infer<typeof createEventSchema>;
+export type EventFormValues = z.infer<typeof eventFormSchema>;

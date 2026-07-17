@@ -1,125 +1,146 @@
 'use client';
 
-import { useForm,  useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createEventSchema , CreateEventFormValues } from './formSchema';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import { useEvents } from '@/context/EventsContext';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { eventFormSchema, EventFormValues } from './formSchema';
+import { fetchFromBackend } from '@/utils/api';
 
 export default function CreateEventPage() {
-  const router = useRouter();
-  const { refetch } = useEvents(); // 👈 use the refetch method
-  const { register, control, handleSubmit, formState: { errors } } = useForm<CreateEventFormValues>({
-    resolver: zodResolver(createEventSchema),
-    defaultValues: {
-      locations: [{ name: '', description: '' }],
-    }
-  });
+    const router = useRouter();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'locations',
-  });
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<EventFormValues>({
+        resolver: zodResolver(eventFormSchema),
+        defaultValues: {
+            name: '',
+            startDate: '',
+            endDate: '',
+            address: '',
+            postcode: '',
+            mapUrl: '',
+            description: '',
+        },
+    });
 
-  const [submitting, setSubmitting] = useState(false);
+    const onSubmit = async (data: EventFormValues) => {
+        setIsSubmitting(true);
+        setError(null);
 
-  const onSubmit = async (data: CreateEventFormValues) => {
-    setSubmitting(true);
+        try {
+            // Post the flattened form data straight to Spring Boot
+            const savedEvent = await fetchFromBackend('/events', {
+                method: 'POST',
+                body: JSON.stringify(data),
+            });
 
-    const { data: user } = await supabase.auth.getUser();
-    const userId = user?.user?.id;
+            console.log('Event created successfully:', savedEvent);
+            // Redirect the user back to the dashboard upon success
+            router.push('/dashboard/current');
+        } catch (err: any) {
+            console.error('Failed to create event:', err);
+            setError(err.message || 'An unexpected error occurred.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
-    if (!userId) {
-      alert('User not authenticated');
-      setSubmitting(false);
-      return;
-    }
+    return (
+        <div className="max-w-2xl p-8 mx-auto bg-white rounded-lg shadow-sm mt-10">
+            <h1 className="mb-6 text-2xl font-bold text-gray-800">Create New Event</h1>
+            
+            {error && (
+                <div className="p-4 mb-6 text-sm text-red-700 bg-red-100 rounded-md">
+                    {error}
+                </div>
+            )}
 
-    // Step 1: Insert Event
-    const { data: eventInsertData, error: eventError } = await supabase
-      .from('Event')
-      .insert({
-        CreatedByUserID: userId,
-        Name: data.name,
-        StartDate: data.startDate,
-        EndDate: data.endDate,
-        Address: data.address,
-        Postcode: data.postcode,
-        MapURL: data.mapURL,
-        Description: data.description
-      })
-      .select('EventID') // return the inserted event ID
-      .single();
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Event Name</label>
+                    <input 
+                        type="text" 
+                        {...register('name')} 
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                    />
+                    {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+                </div>
 
-    if (eventError || !eventInsertData) {
-      alert('Error creating event: ' + eventError?.message);
-      setSubmitting(false);
-      return;
-    }
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                        <input 
+                            type="datetime-local" 
+                            {...register('startDate')} 
+                            className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                        />
+                        {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate.message}</p>}
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">End Date</label>
+                        <input 
+                            type="datetime-local" 
+                            {...register('endDate')} 
+                            className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                        />
+                        {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate.message}</p>}
+                    </div>
+                </div>
 
-    const eventId = eventInsertData.EventID;
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Address</label>
+                    <input 
+                        type="text" 
+                        {...register('address')} 
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                    />
+                </div>
 
-    // Step 2: Insert Locations
-    const locationsToInsert = data.locations.map((loc) => ({
-      EventID: eventId,
-      Name: loc.name,
-      Description: loc.description,
-    }));
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Postcode</label>
+                    <input 
+                        type="text" 
+                        {...register('postcode')} 
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                    />
+                </div>
 
-    if (locationsToInsert.length > 0) {
-      const { error: locationError } = await supabase
-        .from('EventLocation')
-        .insert(locationsToInsert);
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Google Maps URL</label>
+                    <input 
+                        type="url" 
+                        {...register('mapUrl')} 
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                        placeholder="https://maps.google.com/..."
+                    />
+                    {errors.mapUrl && <p className="mt-1 text-sm text-red-600">{errors.mapUrl.message}</p>}
+                </div>
 
-      if (locationError) {
-        alert('Event created, but error adding locations: ' + locationError.message);
-      }
-    }
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea 
+                        {...register('description')} 
+                        rows={4}
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                    />
+                </div>
 
-    setSubmitting(false);
-    await refetch(); // ✅ Refresh the events context manually
-    router.replace('/dashboard'); // ✅ Navigate to dashboard
-  };
-
-  return (
-    <main className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Create Event</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <input {...register("name")} placeholder="Event Name" className="w-full p-2 border rounded" />
-        {errors.name && <p className="text-red-500">{errors.name.message}</p>}
-
-        <input {...register("startDate")} type="datetime-local" className="w-full p-2 border rounded" />
-        {errors.startDate && <p className="text-red-500">{errors.startDate.message}</p>}
-
-        <input {...register("endDate")} type="datetime-local" className="w-full p-2 border rounded" />
-        {errors.endDate && <p className="text-red-500">{errors.endDate.message}</p>}
-
-        <input {...register("address")} placeholder="Address" className="w-full p-2 border rounded" />
-        <input {...register("postcode")} placeholder="Postcode" className="w-full p-2 border rounded" />
-        <input {...register("mapURL")} placeholder="Map URL" className="w-full p-2 border rounded" />
-        <textarea {...register("description")} placeholder="Description" className="w-full p-2 border rounded" />
-        <div>
-          <h2 className="text-xl font-semibold">Event Locations</h2>
-          {fields.map((field, index) => (
-            <div key={field.id} className="border p-3 rounded mt-3">
-              <input {...register(`locations.${index}.name`)} placeholder="Location Name" className="w-full p-2 border rounded mb-2" />
-              {errors.locations?.[index]?.name && <p className="text-red-500">{errors.locations[index]?.name?.message}</p>}
-
-              <textarea {...register(`locations.${index}.description`)} placeholder="Location Description" className="w-full p-2 border rounded" />
-
-              <button type="button" onClick={() => remove(index)} className="text-red-600 mt-1 text-sm">Remove</button>
-            </div>
-          ))}
-          <button type="button" onClick={() => append({ name: '', description: '' })} className="text-blue-600 text-sm mt-2">
-            + Add Location
-          </button>
+                <div className="flex justify-end pt-4">
+                    <button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700 disabled:opacity-50"
+                    >
+                        {isSubmitting ? 'Creating Event...' : 'Create Event'}
+                    </button>
+                </div>
+            </form>
         </div>
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded" disabled={submitting}>
-          {submitting ? 'Creating...' : 'Create Event'}
-        </button>
-      </form>
-    </main>
-  );
+    );
 }
