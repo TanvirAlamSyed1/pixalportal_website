@@ -1,24 +1,24 @@
 'use client';
-
+ 
 import { useEffect, useState } from 'react';
-import { fetchFromBackend } from '@/utils/api';
-
+import { fetchLocalApi } from '@/utils/api';
+ 
 interface EventImage {
     key: string;
     url: string;
 }
-
+ 
 export default function ManageEventImagesPage({ params }: { params: { eventId: string } }) {
     const { eventId } = params;
     const [images, setImages] = useState<EventImage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
-
+ 
     useEffect(() => {
         const fetchImages = async () => {
             try {
-                // Fetch the list of image URLs from your Spring Boot backend
-                const data = await fetchFromBackend(`/list-images?eventId=${eventId}`);
+                // Fetch the list of image URLs from this app's own /api/list-images route
+                const data = await fetchLocalApi(`/list-images?eventId=${eventId}`);
                 setImages(data);
             } catch (err: any) {
                 console.error("Failed to load images:", err);
@@ -27,17 +27,17 @@ export default function ManageEventImagesPage({ params }: { params: { eventId: s
                 setIsLoading(false);
             }
         };
-
+ 
         fetchImages();
     }, [eventId]);
-
+ 
     const handleDelete = async (imageKey: string) => {
         if (!confirm('Are you sure you want to delete this image?')) return;
-
+ 
         try {
-            await fetchFromBackend(`/delete-image`, {
-                method: 'DELETE',
-                body: JSON.stringify({ key: imageKey })
+            await fetchLocalApi(`/delete-image`, {
+                method: 'POST',
+                body: JSON.stringify({ eventId, key: imageKey }),
             });
             
             // Remove the deleted image from the local state
@@ -47,10 +47,10 @@ export default function ManageEventImagesPage({ params }: { params: { eventId: s
             alert("Failed to delete image: " + err.message);
         }
     };
-
+ 
     if (isLoading) return <div className="p-8 text-center text-gray-500">Loading images...</div>;
     if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>;
-
+ 
     return (
         <div className="p-8">
             <h1 className="mb-6 text-2xl font-bold text-gray-800">Manage Event Images</h1>

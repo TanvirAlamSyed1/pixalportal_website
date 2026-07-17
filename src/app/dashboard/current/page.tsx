@@ -18,7 +18,7 @@ export default function CurrentEventsPage() {
   const now = dayjs();
 
   const currentEvents = events.filter(
-    e => dayjs(e.StartDate).isSame(now, 'day') && dayjs(e.EndDate).isAfter(now)
+    e => dayjs(e.startDate).isSame(now, 'day') && dayjs(e.endDate).isAfter(now)
   );
 
   return (
@@ -36,9 +36,9 @@ export default function CurrentEventsPage() {
         <div className="flex gap-4 flex-wrap">
           {currentEvents.map(event => (
             <EventCard
-              key={event.EventID}
-              title={event.Name}
-              href={`/dashboard/current/${event.EventID}`}
+              key={event.eventId}
+              title={event.name}
+              href={`/dashboard/current/${event.eventId}`}
             />
           ))}
         </div>

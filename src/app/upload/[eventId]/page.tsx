@@ -1,30 +1,37 @@
 'use client';
-
+ 
 import { useState } from 'react';
-import { fetchFromBackend } from '@/utils/api';
-
+import { fetchLocalApi } from '@/utils/api';
+ 
 export default function EventUploadPage({ params }: { params: { eventId: string } }) {
     const { eventId } = params;
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadStatus, setUploadStatus] = useState<string>('');
-
+ 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setSelectedFile(e.target.files[0]);
         }
     };
-
+ 
     const handleUpload = async () => {
         if (!selectedFile) return;
-
+ 
         setIsUploading(true);
         setUploadStatus('Uploading...');
-
+ 
         try {
-            // 1. Fetch the secure S3 upload URL from your Spring Boot backend
-            const { uploadUrl } = await fetchFromBackend(`/s3-upload-url?eventId=${eventId}&fileName=${selectedFile.name}`);
-
+            // 1. Fetch a presigned S3 upload URL from this app's own /api/s3-upload-url route
+            const { uploadUrl } = await fetchLocalApi(`/s3-upload-url`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    eventId,
+                    fileName: selectedFile.name,
+                    contentType: selectedFile.type,
+                }),
+            });
+ 
             // 2. Upload the file directly to AWS S3 using a standard PUT request
             const s3Response = await fetch(uploadUrl, {
                 method: 'PUT',
@@ -33,11 +40,11 @@ export default function EventUploadPage({ params }: { params: { eventId: string 
                     'Content-Type': selectedFile.type,
                 },
             });
-
+ 
             if (!s3Response.ok) {
                 throw new Error('Failed to upload file to S3');
             }
-
+ 
             setUploadStatus('Upload successful!');
             setSelectedFile(null); // Clear the file input
         } catch (error: any) {
@@ -47,7 +54,7 @@ export default function EventUploadPage({ params }: { params: { eventId: string 
             setIsUploading(false);
         }
     };
-
+ 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-gray-50">
             <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
@@ -68,7 +75,7 @@ export default function EventUploadPage({ params }: { params: { eventId: string 
                     >
                         {isUploading ? 'Uploading...' : 'Upload Image'}
                     </button>
-
+ 
                     {uploadStatus && (
                         <p className={`text-center text-sm font-medium ${uploadStatus.includes('successful') ? 'text-green-600' : 'text-red-600'}`}>
                             {uploadStatus}

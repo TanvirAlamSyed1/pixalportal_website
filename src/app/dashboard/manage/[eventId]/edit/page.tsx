@@ -43,8 +43,17 @@ export default function EditEventPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Updated where clause to use lowercase 'eventid'[cite: 2]
-    await supabase.from('Event').update(form).eq('eventid', eventId);
+    // Changed to match the actual database schema: 'Event' table and 'EventID' column
+    const { error } = await supabase
+      .from('Event')
+      .update(form)
+      .eq('EventID', eventId); // Use PascalCase to match the database column
+
+    if (error) {
+      console.error("Update error:", error);
+      return;
+    }
+
     router.push('/dashboard/manage');
   };
 
