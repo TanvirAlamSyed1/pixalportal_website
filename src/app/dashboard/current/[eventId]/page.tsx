@@ -7,7 +7,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 // Updated to match your database column names exactly
 interface EventData {
-  eventid: string;
+  EventID: string;
   name: string;
   start_date: string;
   end_date: string;
@@ -33,7 +33,7 @@ export default function EventQRPage() {
       const { data, error } = await supabase
         .from('Event') // Changed to lowercase to match the database table
         .select('*')
-        .eq('eventid', eventId)
+        .eq('EventId', eventId)
         .single();
       
       if (error) {

@@ -20,11 +20,11 @@ export default function CreateEventPage() {
         resolver: zodResolver(eventFormSchema),
         defaultValues: {
             name: '',
-            startdate: '', // Updated
-            enddate: '',   // Updated
+            startDate: '', // Updated
+            endDate: '',   // Updated
             address: '',
             postcode: '',
-            mapurl: '',    // Updated
+            mapURL: '',    // Updated
             description: '',
         },
     });
@@ -69,23 +69,54 @@ export default function CreateEventPage() {
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Start Date</label>
-                        <input type="datetime-local" {...register('startdate')} className="block w-full mt-1 border-gray-300 rounded-md shadow-sm" />
-                        {errors.startdate && <p className="mt-1 text-sm text-red-600">{errors.startdate.message}</p>}
+                        <input type="datetime-local" {...register('startDate')} className="block w-full mt-1 border-gray-300 rounded-md shadow-sm" />
+                        {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate.message}</p>}
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">End Date</label>
-                        <input type="datetime-local" {...register('enddate')} className="block w-full mt-1 border-gray-300 rounded-md shadow-sm" />
-                        {errors.enddate && <p className="mt-1 text-sm text-red-600">{errors.enddate.message}</p>}
+                        <input type="datetime-local" {...register('endDate')} className="block w-full mt-1 border-gray-300 rounded-md shadow-sm" />
+                        {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate.message}</p>}
                     </div>
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Google Maps URL</label>
-                    <input type="url" {...register('mapurl')} className="block w-full mt-1 border-gray-300 rounded-md shadow-sm" placeholder="https://maps.google.com/..." />
-                    {errors.mapurl && <p className="mt-1 text-sm text-red-600">{errors.mapurl.message}</p>}
+                    <input type="url" {...register('mapURL')} className="block w-full mt-1 border-gray-300 rounded-md shadow-sm" placeholder="https://maps.google.com/..." />
+                    {errors.mapURL && <p className="mt-1 text-sm text-red-600">{errors.mapURL.message}</p>}
                 </div>
 
-                {/* ... keep address, postcode, and description fields similarly updated with lowercase register names ... */}
+                                {/* Address Field */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Address</label>
+                    <input 
+                        type="text" 
+                        {...register('address')} 
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm" 
+                    />
+                    {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address.message}</p>}
+                </div>
+
+                {/* Postcode Field */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Postcode</label>
+                    <input 
+                        type="text" 
+                        {...register('postcode')} 
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm" 
+                    />
+                    {errors.postcode && <p className="mt-1 text-sm text-red-600">{errors.postcode.message}</p>}
+                </div>
+
+                {/* Description Field (Textarea) */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea 
+                        {...register('description')} 
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm" 
+                        rows={4}
+                    />
+                    {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
+                </div>
                 
                 <div className="flex justify-end pt-4">
                     <button type="submit" disabled={isSubmitting} className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700">
