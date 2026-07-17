@@ -5,11 +5,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { QRCodeSVG } from 'qrcode.react';
 
+// Updated to match your database column names exactly
 interface EventData {
   eventid: string;
   name: string;
-  startdate: string;
-  enddate: string;
+  start_date: string;
+  end_date: string;
   address: string;
   postcode: string;
   description?: string;
@@ -25,17 +26,24 @@ export default function EventQRPage() {
 
   // Fetch only the event data on mount
   useEffect(() => {
+    // Guard clause to prevent 400 errors if the ID hasn't loaded
+    if (!eventId) return;
+
     const fetchData = async () => {
       const { data, error } = await supabase
-        .from('Event')
+        .from('Event') // Changed to lowercase to match the database table
         .select('*')
         .eq('eventid', eventId)
         .single();
       
-      if (error) console.error("Error fetching event:", error);
-      setEvent(data);
+      if (error) {
+        console.error("Error fetching event:", error);
+      } else {
+        setEvent(data);
+      }
       setLoading(false);
     };
+    
     fetchData();
   }, [eventId]);
 
@@ -54,8 +62,9 @@ export default function EventQRPage() {
       {/* Event Details Section */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">{event.name}</h1>
-        <p><strong>Start Date:</strong> {formatDate(event.startdate)}</p>
-        <p><strong>End Date:</strong> {formatDate(event.enddate)}</p>
+        {/* Updated to use start_date and end_date */}
+        <p><strong>Start Date:</strong> {formatDate(event.start_date)}</p>
+        <p><strong>End Date:</strong> {formatDate(event.end_date)}</p>
         <p><strong>Address:</strong> {event.address}</p>
         <p><strong>Postcode:</strong> {event.postcode}</p>
         <p><strong>Description:</strong> {event.description}</p>

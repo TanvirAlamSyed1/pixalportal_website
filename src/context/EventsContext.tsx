@@ -9,6 +9,7 @@ interface EventsContextProps {
     loading: boolean;
     error: string | null;
     refreshEvents: () => Promise<void>;
+    refetch: () => Promise<void>; // ✅ Added to support ManagePage
 }
 
 const EventsContext = createContext<EventsContextProps | undefined>(undefined);
@@ -39,7 +40,15 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     return (
-        <EventsContext.Provider value={{ events, loading, error, refreshEvents }}>
+        <EventsContext.Provider 
+            value={{ 
+                events, 
+                loading, 
+                error, 
+                refreshEvents, 
+                refetch: refreshEvents // ✅ Passes the function under the new name
+            }}
+        >
             {children}
         </EventsContext.Provider>
     );

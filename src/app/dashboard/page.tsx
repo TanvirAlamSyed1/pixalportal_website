@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { useEvents } from '@/context/EventsContext';
@@ -40,7 +41,7 @@ const EventSection = ({
 
   const sortedEvents = sort
     ? [...events].sort((a, b) =>
-        dayjs(a.startdate || '').diff(dayjs(b.startdate || ''))
+        dayjs(a.startDate || '').diff(dayjs(b.startDate || ''))
       )
     : events;
 
@@ -50,15 +51,15 @@ const EventSection = ({
       <div className="flex gap-4 flex-wrap">
         {sortedEvents.length > 0 ? (
           sortedEvents.map(e => {
-            const countdown = showCountdown && e.startdate
-              ? `${dayjs(e.startdate).diff(now, 'day')} day${dayjs(e.startdate).diff(now, 'day') !== 1 ? 's' : ''} to go`
+            const countdown = showCountdown && e.startDate
+              ? `${dayjs(e.startDate).diff(now, 'day')} day${dayjs(e.startDate).diff(now, 'day') !== 1 ? 's' : ''} to go`
               : undefined;
 
-            const link = e.customHref || `/dashboard/view/${e.eventid}`;
+            const link = e.customHref || `/dashboard/view/${e.eventId}`;
 
             return (
               <EventCard
-                key={`${e.eventid}-${title}`} // Ensures uniqueness even if the ID is duplicated
+                key={`${e.eventId}-${title}`} 
                 title={e.name}
                 href={link}
                 countdown={countdown}
@@ -74,30 +75,57 @@ const EventSection = ({
 };
 
 export default function DashboardPage() {
-  const { events, loading } = useEvents();
+  const { events, loading, refetch } = useEvents(); 
   const now = dayjs();
 
-  const currentEvents: EventWithHref[] = events
-    .filter(e =>
-      dayjs(e.startdate).isSame(now, 'day') &&
-      (dayjs(e.enddate).isSame(now, 'day') || dayjs(e.enddate).isAfter(now, 'day'))
-    )
+  // Force the dashboard to fetch the freshest data from the backend when it mounts
+  useEffect(() => {
+    if (refetch) {
+      refetch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const validEvents = events.filter(e => e.eventId);
+
+  const currentEvents: EventWithHref[] = validEvents
+    .filter(e => {
+      if (!e.startDate) return false;
+      const start = dayjs(e.startDate).startOf('day');
+      const end = e.endDate ? dayjs(e.endDate).endOf('day') : start.endOf('day');
+      const today = now.startOf('day');
+
+      // An event is current if today falls anywhere between its start and end dates
+      return (start.isSame(today) || start.isBefore(today)) &&
+             (end.isSame(today) || end.isAfter(today));
+    })
     .map(e => ({
       ...e,
-      customHref: `/dashboard/current/${e.eventid}`, // 👈 QR Code view route
+      customHref: `/dashboard/current/${e.eventId}`,
     }));
 
-  const upcomingEvents = events.filter(
-    e => dayjs(e.startdate).isAfter(now, 'day')
-  );
+  const upcomingEvents = validEvents
+    .filter(e => {
+      if (!e.startDate) return false;
+      const start = dayjs(e.startDate).startOf('day');
+      const today = now.startOf('day');
+      
+      // An event is upcoming if its start date is strictly in the future
+      return start.isAfter(today);
+    });
 
-  const previousEvents = events
-    .filter(
-      e => dayjs(e.enddate).isBefore(now, 'day')
-    ) 
+  const previousEvents = validEvents
+    .filter(e => {
+      if (!e.startDate && !e.endDate) return false;
+      const end = e.endDate ? dayjs(e.endDate).endOf('day') : dayjs(e.startDate).endOf('day');
+      const today = now.startOf('day');
+      
+      // An event is previous if its end date is strictly in the past
+      return end.isBefore(today);
+    })
     .map(e => ({
       ...e,
-      customHref: `/dashboard/previous/${e.eventid}`, // 👈 QR Code view route
+      customHref: `/dashboard/previous/${e.eventId}`,
     }));
 
   return (

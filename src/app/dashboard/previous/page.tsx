@@ -18,7 +18,7 @@ export default function PreviousEventsPage() {
 
   const now = dayjs();
   // Changed 'EndDate' to 'enddate' to match lowercase schema
-  const previousEvents = events.filter(e => dayjs(e.enddate).isBefore(now));
+  const previousEvents = events.filter(e => dayjs(e.endDate).isBefore(now));
 
   return (
     <main className="p-6">
@@ -36,12 +36,12 @@ export default function PreviousEventsPage() {
           {previousEvents.map(event => (
             <EventCard
               // Changed 'EventID' to 'eventid'
-              key={event.eventid}
+              key={event.eventId}
               // Changed 'Name' to 'name'
               title={event.name}
               // Changed 'EventID' to 'eventid'[cite: 1, 2]
              // To this (pointing to your new EventQRPage):
-              href={`/dashboard/view/${event.eventid}`}
+              href={`/dashboard/view/${event.eventId}`}
             />
           ))}
         </div>
