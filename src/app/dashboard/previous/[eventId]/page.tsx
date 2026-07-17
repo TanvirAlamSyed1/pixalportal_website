@@ -5,44 +5,47 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 
-type Location = {
-  EventLocID: string;
-  Name: string;
-};
+// Updated interface to match your Event-only structure
+interface EventData {
+  eventid: string;
+  name: string;
+}
 
-export default function EventLocationsPage() {
+export default function EventDetailsPage() {
   const { eventId } = useParams() as { eventId?: string };
   const router = useRouter();
 
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLocations = async () => {
+    const fetchEvent = async () => {
       if (!eventId) return;
 
+      // Fetch only the event name/details
       const { data, error } = await supabase
-        .from('EventLocation')
-        .select('EventLocID, Name')
-        .eq('EventID', eventId);
+        .from('Event')
+        .select('eventid, name')
+        .eq('eventid', eventId)
+        .single();
 
       if (error) {
-        console.error('Failed to fetch locations:', error);
+        console.error('Failed to fetch event:', error);
         return;
       }
 
-      setLocations(data ?? []);
+      setEvent(data);
       setLoading(false);
     };
 
-    fetchLocations();
+    fetchEvent();
   }, [eventId]);
 
-  if (loading) return <p className="p-6">Loading locations...</p>;
+  if (loading) return <p className="p-6">Loading event...</p>;
 
   return (
     <main className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">📁 Locations in This Event</h1>
+      <h1 className="text-3xl font-bold">📁 {event?.name || 'Event'}</h1>
 
       <button
         onClick={() => router.push('/dashboard/previous')}
@@ -51,21 +54,15 @@ export default function EventLocationsPage() {
         ← Back to Previous Events
       </button>
 
-      {locations.length === 0 ? (
-        <p className="text-gray-500">No locations found for this event.</p>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {locations.map((loc) => (
-            <Link
-              key={loc.EventLocID}
-              href={`/dashboard/image/${eventId}/${loc.EventLocID}`}
-              className="bg-gray-800 text-white p-4 rounded-lg h-40 flex items-center justify-center text-center shadow hover:shadow-lg"
-            >
-              {loc.Name}
-            </Link>
-          ))}
-        </div>
-      )}
+      {/* Direct link to the image gallery for this event */}
+      <div className="mt-6">
+        <Link
+          href={`/dashboard/image/${eventId}`}
+          className="bg-gray-800 text-white p-6 rounded-lg w-full max-w-xs flex items-center justify-center text-center shadow hover:shadow-lg transition"
+        >
+          View Event Images
+        </Link>
+      </div>
     </main>
   );
 }

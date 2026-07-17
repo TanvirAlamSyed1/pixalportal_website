@@ -40,7 +40,7 @@ const EventSection = ({
 
   const sortedEvents = sort
     ? [...events].sort((a, b) =>
-        dayjs(a.StartDate || '').diff(dayjs(b.StartDate || ''))
+        dayjs(a.startdate || '').diff(dayjs(b.startdate || ''))
       )
     : events;
 
@@ -50,16 +50,16 @@ const EventSection = ({
       <div className="flex gap-4 flex-wrap">
         {sortedEvents.length > 0 ? (
           sortedEvents.map(e => {
-            const countdown = showCountdown && e.StartDate
-              ? `${dayjs(e.StartDate).diff(now, 'day')} day${dayjs(e.StartDate).diff(now, 'day') !== 1 ? 's' : ''} to go`
+            const countdown = showCountdown && e.startdate
+              ? `${dayjs(e.startdate).diff(now, 'day')} day${dayjs(e.startdate).diff(now, 'day') !== 1 ? 's' : ''} to go`
               : undefined;
 
-            const link = e.customHref || `/dashboard/view/${e.EventID}`;
+            const link = e.customHref || `/dashboard/view/${e.eventid}`;
 
             return (
               <EventCard
-                key={e.EventID}
-                title={e.Name}
+                key={`${e.eventid}-${title}`} // Ensures uniqueness even if the ID is duplicated
+                title={e.name}
                 href={link}
                 countdown={countdown}
               />
@@ -79,25 +79,25 @@ export default function DashboardPage() {
 
   const currentEvents: EventWithHref[] = events
     .filter(e =>
-      dayjs(e.StartDate).isSame(now, 'day') &&
-      (dayjs(e.EndDate).isSame(now, 'day') || dayjs(e.EndDate).isAfter(now, 'day'))
+      dayjs(e.startdate).isSame(now, 'day') &&
+      (dayjs(e.enddate).isSame(now, 'day') || dayjs(e.enddate).isAfter(now, 'day'))
     )
     .map(e => ({
       ...e,
-      customHref: `/dashboard/current/${e.EventID}`, // 👈 QR Code view route
+      customHref: `/dashboard/current/${e.eventid}`, // 👈 QR Code view route
     }));
 
   const upcomingEvents = events.filter(
-    e => dayjs(e.StartDate).isAfter(now, 'day')
+    e => dayjs(e.startdate).isAfter(now, 'day')
   );
 
   const previousEvents = events
     .filter(
-      e => dayjs(e.EndDate).isBefore(now, 'day')
+      e => dayjs(e.enddate).isBefore(now, 'day')
     ) 
     .map(e => ({
       ...e,
-      customHref: `/dashboard/previous/${e.EventID}`, // 👈 QR Code view route
+      customHref: `/dashboard/previous/${e.eventid}`, // 👈 QR Code view route
     }));
 
   return (

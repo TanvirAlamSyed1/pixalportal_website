@@ -12,13 +12,15 @@ const s3 = new S3Client({
 
 export async function POST(req: Request) {
   try {
-    const { eventId, locationId, imageId } = await req.json();
+    // Removed locationId from the request body
+    const { eventId, imageId } = await req.json();
 
-    if (!eventId || !locationId || !imageId) {
+    if (!eventId || !imageId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const key = `events/${eventId}/${locationId}/${imageId}`;
+    // Updated key structure to exclude locationId
+    const key = `events/${eventId}/${imageId}`;
 
     await s3.send(new DeleteObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME!,

@@ -1,3 +1,4 @@
+// src/app/api/list-images/route.ts
 import {
   S3Client,
   ListObjectsV2Command,
@@ -17,13 +18,14 @@ const s3 = new S3Client({
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const eventId = searchParams.get('eventId');
-  const locationId = searchParams.get('locationId');
 
-  if (!eventId || !locationId) {
-    return NextResponse.json({ error: 'Missing params' }, { status: 400 });
+  // Removed locationId validation
+  if (!eventId) {
+    return NextResponse.json({ error: 'Missing eventId' }, { status: 400 });
   }
 
-  const prefix = `events/${eventId}/${locationId}/`;
+  // Updated prefix to remove locationId
+  const prefix = `events/${eventId}/`;
 
   const listCommand = new ListObjectsV2Command({
     Bucket: process.env.AWS_BUCKET_NAME!,
@@ -38,7 +40,7 @@ export async function GET(req: NextRequest) {
 
     const signedUrls = await Promise.all(
       contents
-        .filter(obj => obj.Size && obj.Size > 0) // filters out zero-byte files
+        .filter(obj => obj.Size && obj.Size > 0)
         .map(async (obj) => {
           const getCommand = new GetObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME!,

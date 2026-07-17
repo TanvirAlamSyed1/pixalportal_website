@@ -1,3 +1,4 @@
+// src/app/api/s3-upload-url/route.ts
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,33 +16,29 @@ const s3 = new S3Client({
 
 export async function POST(req: Request) {
   try {
-    // ⬇️ Read the Supabase session via cookies
     const supabase = createServerComponentClient({ cookies });
 
-    const { eventId, locationId, fileName, contentType } = await req.json();
+    // Removed locationId from request body
+    const { eventId, fileName, contentType } = await req.json();
 
-    if (!eventId || !locationId || !fileName || !contentType) {
+    if (!eventId || !fileName || !contentType) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    console.log('🧪 Supabase check inputs:', { eventId, locationId});
-
-    const { data: location, error } = await supabase
-      .from('EventLocation')
-      .select('EventLocID, EventID')
-      .eq('EventLocID', locationId)
-      .eq('EventID', eventId)
+    // Verify event ownership without checking locationId
+    const { data: event, error } = await supabase
+      .from('Event')
+      .select('eventid')
+      .eq('eventid', eventId)
       .maybeSingle();
 
-    console.log('📦 Supabase location result:', { location, error });
-
-    if (!location || error) {
-      return NextResponse.json({ error: 'Invalid Event or Location' }, { status: 403 });
+    if (!event || error) {
+      return NextResponse.json({ error: 'Invalid Event' }, { status: 403 });
     }
 
-    // ✅ All good — generate signed S3 upload URL
+    // Updated path structure to exclude locationId
     const uniqueName = `${Date.now()}-${uuidv4()}-${fileName}`;
-    const key = `events/${eventId}/${locationId}/${uniqueName}`;
+    const key = `events/${eventId}/${uniqueName}`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME!,
