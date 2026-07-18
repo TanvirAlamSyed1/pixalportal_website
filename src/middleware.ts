@@ -1,45 +1,60 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
 
 const PUBLIC_ROUTES = ['/login', '/signup', '/auth/callback'];
 const PROFILE_FORM_ROUTE = '/login/completeform';
 
 export async function middleware(req: NextRequest) {
-  // Create response object
-  const res = NextResponse.next();
-  
-  // Create Supabase client
-  const supabase = createMiddlewareClient({ req, res });
+  let response = NextResponse.next({
+    request: {
+      headers: req.headers,
+    },
+  });
 
-  try {
-    // Check auth state
-    const { data: { user } } = await supabase.auth.getUser();
-    const pathname = req.nextUrl.pathname;
-
-    // Handle public routes
-    if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
-      return res;
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            req.cookies.set(name, value)
+          );
+          response = NextResponse.next({ request: req });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
     }
+  );
 
-    // Handle profile form route
-    if (pathname === PROFILE_FORM_ROUTE) {
-      if (!user) {
-        return NextResponse.redirect(new URL('/login', req.url));
-      }
-      return res;
-    }
+  // Authenticate user
+  const { data: { user } } = await supabase.auth.getUser();
+  const pathname = req.nextUrl.pathname;
 
-    // Protect all other routes
+  // 1. Handle public routes
+  if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
+    return response;
+  }
+
+  // 2. Handle profile form route
+  if (pathname === PROFILE_FORM_ROUTE) {
     if (!user) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
-
-    return res;
-  } catch (error) {
-    console.error('Middleware error:', error);
-    return NextResponse.redirect(new URL('/error', req.url));
+    return response;
   }
+
+  // 3. Protect all other routes
+  if (!user) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+
+  return response;
 }
 
 export const config = {

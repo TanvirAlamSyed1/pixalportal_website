@@ -12,7 +12,7 @@
     "@aws-sdk/client-s3": "^3.832.0",
     "@aws-sdk/s3-request-presigner": "^3.835.0",
     "@hookform/resolvers": "^5.0.1",
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.49.8",
     "aws": "^0.0.3-2",
     "dayjs": "^1.11.13",

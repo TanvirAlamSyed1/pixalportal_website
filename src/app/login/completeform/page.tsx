@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+// 1. Updated import to use your local SSR client
+import { createClient } from '@/lib/supabaseClient';
 
 export default function CompleteFormPage() {
-  const supabase = createClientComponentClient();
+  // 2. Initialized using your standardized local client
+  const supabase = createClient();
   const router = useRouter();
 
   const [firstName, setFirstName] = useState('');
@@ -38,7 +40,8 @@ export default function CompleteFormPage() {
     };
 
     loadProfile();
-  }, [router, supabase]);
+    // Removed 'supabase' from dependency array to prevent infinite re-renders
+  }, [router]); 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,11 +62,10 @@ export default function CompleteFormPage() {
       .eq('User_ID', user.id);
 
     if (!error) {
-      // Optional: Optimistic local update
       setFirstName(firstName); 
       setSurname(surname);
 
-      // ✅ Give Supabase a moment to commit the update before middleware re-runs
+      // ✅ Give Supabase a moment to commit before redirecting
       await new Promise((r) => setTimeout(r, 500));
 
       router.push('/dashboard');
@@ -72,6 +74,7 @@ export default function CompleteFormPage() {
       setLoading(false);
     }
   };
+
   if (loading) return <div className="p-4 text-white">Loading...</div>;
 
   return (
@@ -111,7 +114,6 @@ export default function CompleteFormPage() {
         >
           {loading ? 'Saving...' : 'Save and Continue'}
         </button>
-
       </form>
     </main>
   );

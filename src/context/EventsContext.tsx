@@ -1,7 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { fetchFromBackend } from '@/utils/api';
+// Import the dedicated function from our API utility
+import { getMyEvents } from '@/utils/api';
 import { Event } from '@/types/events';
 
 interface EventsContextProps {
@@ -9,7 +10,7 @@ interface EventsContextProps {
     loading: boolean;
     error: string | null;
     refreshEvents: () => Promise<void>;
-    refetch: () => Promise<void>; // ✅ Added to support ManagePage
+    refetch: () => Promise<void>; 
 }
 
 const EventsContext = createContext<EventsContextProps | undefined>(undefined);
@@ -23,8 +24,8 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(true);
         setError(null);
         try {
-            // Fetch events from the Spring Boot API
-            const data = await fetchFromBackend('/events');
+            // Fetch events using our strictly-typed wrapper function
+            const data = await getMyEvents();
             setEvents(data);
         } catch (err: any) {
             console.error('Failed to fetch events from backend:', err);
@@ -46,7 +47,7 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
                 loading, 
                 error, 
                 refreshEvents, 
-                refetch: refreshEvents // ✅ Passes the function under the new name
+                refetch: refreshEvents 
             }}
         >
             {children}

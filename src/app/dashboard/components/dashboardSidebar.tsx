@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabaseClient';
 
 export default function Sidebar({
   isOpen,
@@ -11,19 +11,16 @@ export default function Sidebar({
 }: {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-}) 
-{
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile dropdown
+}) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
-  const supabase = createClientComponentClient();
-
+  const supabase = createClient();
 
   const handleLogout = async () => {
-    const supabase = createClientComponentClient();
     await supabase.auth.signOut();
     router.push('/login');
+    router.refresh();
   };
-
 
   return (
     <>
@@ -44,7 +41,7 @@ export default function Sidebar({
           <nav className="flex flex-col px-4 py-4 space-y-2">
             <Link href="/dashboard" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Home</Link>
             <Link href="/dashboard/create" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Create Event</Link>
-            <Link href="/dashboard/current" className="hover:bg-gray-700 px-4 py-2 rounded"onClick={() => setMobileMenuOpen(false)}>Current Event</Link>
+            <Link href="/dashboard/current" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Current Event</Link>
             <Link href="/dashboard/manage" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Manage Events</Link>
             <Link href="/dashboard/previous" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Previous Events</Link>
             <Link href="/dashboard/settings" className="hover:bg-gray-700 px-4 py-2 rounded" onClick={() => setMobileMenuOpen(false)}>Settings</Link>

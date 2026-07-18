@@ -8,15 +8,7 @@ import { Event as EventType } from '@/types/events';
 
 type EventWithHref = EventType & { customHref?: string };
 
-const EventCard = ({
-  title,
-  href,
-  countdown,
-}: {
-  title: string;
-  href: string;
-  countdown?: string;
-}) => (
+const EventCard = ({ title, href, countdown }: { title: string; href: string; countdown?: string }) => (
   <Link
     href={href}
     className="bg-gray-800 text-white p-4 rounded-lg w-40 h-40 flex flex-col items-center justify-center shadow hover:shadow-lg text-center"
@@ -26,23 +18,12 @@ const EventCard = ({
   </Link>
 );
 
-const EventSection = ({
-  title,
-  events,
-  showCountdown = false,
-  sort = false,
-}: {
-  title: string;
-  events: EventWithHref[];
-  showCountdown?: boolean;
-  sort?: boolean;
-}) => {
+const EventSection = ({ title, events, showCountdown = false, sort = false }: { title: string; events: EventWithHref[]; showCountdown?: boolean; sort?: boolean; }) => {
   const now = dayjs();
 
+  // Sort events based on the ISO date strings
   const sortedEvents = sort
-    ? [...events].sort((a, b) =>
-        dayjs(a.startDate || '').diff(dayjs(b.startDate || ''))
-      )
+    ? [...events].sort((a, b) => dayjs(a.startDate).diff(dayjs(b.startDate)))
     : events;
 
   return (
@@ -51,20 +32,13 @@ const EventSection = ({
       <div className="flex gap-4 flex-wrap">
         {sortedEvents.length > 0 ? (
           sortedEvents.map(e => {
+            const start = dayjs(e.startDate);
             const countdown = showCountdown && e.startDate
-              ? `${dayjs(e.startDate).diff(now, 'day')} day${dayjs(e.startDate).diff(now, 'day') !== 1 ? 's' : ''} to go`
+              ? `${start.diff(now, 'day')} day${start.diff(now, 'day') !== 1 ? 's' : ''} to go`
               : undefined;
 
             const link = e.customHref || `/dashboard/view/${e.eventId}`;
-
-            return (
-              <EventCard
-                key={`${e.eventId}-${title}`} 
-                title={e.name}
-                href={link}
-                countdown={countdown}
-              />
-            );
+            return <EventCard key={`${e.eventId}-${title}`} title={e.name} href={link} countdown={countdown} />;
           })
         ) : (
           <p>No {title.toLowerCase()}</p>
@@ -78,39 +52,28 @@ export default function DashboardPage() {
   const { events, loading, refetch } = useEvents(); 
   const now = dayjs();
 
-  // Force the dashboard to fetch the freshest data from the backend when it mounts
   useEffect(() => {
-    if (refetch) {
-      refetch();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (refetch) refetch();
+  }, [refetch]);
 
   const validEvents = events.filter(e => e.eventId);
 
+  // Filter events based on simple ISO date strings
   const currentEvents: EventWithHref[] = validEvents
     .filter(e => {
       if (!e.startDate) return false;
       const start = dayjs(e.startDate).startOf('day');
       const end = e.endDate ? dayjs(e.endDate).endOf('day') : start.endOf('day');
       const today = now.startOf('day');
-
-      // An event is current if today falls anywhere between its start and end dates
-      return (start.isSame(today) || start.isBefore(today)) &&
-             (end.isSame(today) || end.isAfter(today));
+      return (start.isSame(today) || start.isBefore(today)) && (end.isSame(today) || end.isAfter(today));
     })
-    .map(e => ({
-      ...e,
-      customHref: `/dashboard/current/${e.eventId}`,
-    }));
+    .map(e => ({ ...e, customHref: `/dashboard/current/${e.eventId}` }));
 
   const upcomingEvents = validEvents
     .filter(e => {
       if (!e.startDate) return false;
       const start = dayjs(e.startDate).startOf('day');
       const today = now.startOf('day');
-      
-      // An event is upcoming if its start date is strictly in the future
       return start.isAfter(today);
     });
 
@@ -119,14 +82,9 @@ export default function DashboardPage() {
       if (!e.startDate && !e.endDate) return false;
       const end = e.endDate ? dayjs(e.endDate).endOf('day') : dayjs(e.startDate).endOf('day');
       const today = now.startOf('day');
-      
-      // An event is previous if its end date is strictly in the past
       return end.isBefore(today);
     })
-    .map(e => ({
-      ...e,
-      customHref: `/dashboard/previous/${e.eventId}`,
-    }));
+    .map(e => ({ ...e, customHref: `/dashboard/previous/${e.eventId}` }));
 
   return (
     <div className="flex h-screen text-black">
@@ -136,9 +94,7 @@ export default function DashboardPage() {
           View your current, upcoming and previous events below.
         </p>
 
-        {loading ? (
-          <p>Loading events...</p>
-        ) : (
+        {loading ? <p>Loading events...</p> : (
           <>
             <EventSection title="Current Events" events={currentEvents} />
             <EventSection title="Upcoming Events" events={upcomingEvents} showCountdown sort />
